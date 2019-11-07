@@ -90,9 +90,13 @@ public:
             }
             else
             {
-                n->data = findmin(n->right);
-                erase(n->data);
-                _size++;
+                Node* newNode = findmin(n->right);
+                T newData = newNode->data;
+                n->count = newNode->count;
+                newNode->count = 1;
+                erase(newNode->data);
+                n->data = newData;
+                _size++;;
             }
         }
     }
@@ -102,11 +106,11 @@ public:
     }
     T min() const
     {
-        return findmin(root);
+        return findmin(root)->data;
     }
     T max() const
     {
-        return findmax(root);
+        return findmax(root)->data;
     }
     void clear()
     {
@@ -133,17 +137,17 @@ private:
         else
             return find(n->right, x);
     }
-    T findmin(Node* n) const
+    Node* findmin(Node* n) const
     {
         while(n->left != nullptr)
             n = n->left;
-        return n->data;
+        return n;
     }
-    T findmax(Node* n) const
+    Node* findmax(Node* n) const
     {
         while(n->right != nullptr)
             n = n->right;
-        return n->data;
+        return n;
     }
     void display(Node* n) const
     {
