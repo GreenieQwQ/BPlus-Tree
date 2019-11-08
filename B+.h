@@ -12,6 +12,7 @@ public:
     B_Tree();
     B_Tree( const B_Tree& );
 private:
+    enum State { success, failure, overflow, duplicate };
     struct Leaf
     {
         int count;
@@ -20,7 +21,7 @@ private:
     struct Node
     {
         int count;
-        enum NodeTag { LEAF, NODE };
+        enum NodeTag:char { LEAF, NODE };
         union branch
         {
             Node* node[order];
@@ -28,25 +29,22 @@ private:
         };
         key_type key[order-1];
         NodeTag tag;
-        Node();
+        Node(): count(0), tag(NODE) {}
     };
 
 public:
     bool contains( const key_type& x ) const;
-    bool insert( const key_type& x );
+    bool insert( const data_type& x );
     bool erase( const key_type& x ); 
 
 private:
     Node* root;
-    bool insert( Node*& n, const key_type& x );
+    State insert_data( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch );
+    void insert_key( Node* n, const key_type& newkey, Node* newBranch, size_t pos );
+    void insert_key( Node* n, const key_type& newkey, Leaf* newBranch, size_t pos );
     size_t findPos( Node* n, const key_type& x ) const;
-    void split( Node*& n );
-    Node*& find( Node*& n, const key_type& x );
-    Node* find( Node* n, const key_type& x ) const;
-    Node* findmin( Node* n ) const;
-    Node* findmax( Node* n ) const;
-    void rotateLeft( Node*& n );
-    void rotateRight( Node*& n );
+    void split( Node*& n, Node* pre );
+    void split( Leaf*& n, Node* pre );
     void display( Node* n, int indent = 0 ) const;
     void display( Leaf* l, int indent = 0 ) const;
     
@@ -59,25 +57,71 @@ private:
 };
 
 template<typename data_type, typename key_type, int order, int L>
-bool B_Tree<data_type, key_type, order, L>::insert( const key_type& x )
+bool B_Tree<data_type, key_type, order, L>::insert( const data_type& data )
 {
-    insert( root, x );
+    key_type key = getKey( data );
+    key_type newKey;
+    Node* newBranch;
+    State result = insert_data( root, key, data, newKey, newBranch );
+    if( result == overflow )
+    {
+        Node* newRoot = new Node;
+        newRoot->count = 1;
+        newRoot->key[0] = newKey;
+        newRoot->branch[0] = root;
+        newRoot->branch[1] = newBranch;
+        root = newRoot;
+        result = success; 
+    }
+    if( result == duplicate )
+        return false;
+    else
+        return true;
 }   
 
 template<typename data_type, typename key_type, int order, int L>
-bool B_Tree<data_type, key_type, order, L>::insert( Node*& n, const key_type& x )
+typename B_Tree<data_type, key_type, order, L>::State
+B_Tree<data_type, key_type, order, L>::insert_data( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch )
 {
     if( n->NodeTag == Node::LEAF )
     {
+        size_t pos = findPos( n, x );
+        Leaf*& l = n->branch.leaf[pos];
+        for( int i = 0; i < l->count; ++i )
+            if( data == l->data[i] )
+                return duplicate;
         
+        key_type newKey;
+        Leaf* newBranch;
+        State result = insert( l, key, data, newKey, newBranch );
+        if( result == overflow )
+        {
+            if( n->count < order - 1 )
+            {
+                result = success;
+                insert_key( n, newKey, newBranch, pos );
+            }
+        }
     }
     else if( n->NodeTag == Node::NODE )
     {
-        size_t pos = findPos( n, x )
-        Node* branch =  n->branch.node[i];
+        size_t pos = findPos( n, x );
+        Node* branch =  n->branch.node[pos];
         return insert( branch, x );
     }
 } 
+
+template<typename data_type, typename key_type, int order, int L>
+void B_Tree<data_type, key_type, order, L>::insert_key( Node* n, const key_type& key, const data_type& data, size_t pos ) 
+{
+    for( int i = 0; i < )
+}   
+
+template<typename data_type, typename key_type, int order, int L>
+void B_Tree<data_type, key_type, order, L>::insert_key( Node* n, const key_type& key, const data_type& data, size_t pos ) 
+{
+    for( int i = 0; i < )
+}   
 
 template<typename data_type, typename key_type, int order, int L>
 size_t B_Tree<data_type, key_type, order, L>::findPos( Node* n, const key_type& x ) const
@@ -91,13 +135,29 @@ size_t B_Tree<data_type, key_type, order, L>::findPos( Node* n, const key_type& 
 }   
 
 template<typename data_type, typename key_type, int order, int L>
-void B_Tree<data_type, key_type, order, L>::split( Node*& n )
+void B_Tree<data_type, key_type, order, L>::split( Node*& n, Node* pre)
 {
     if( n->count == order - 1 )
     {
         if( n == root )
         {
 
+        }
+        else
+        {
+            
+        }
+    }
+}   
+
+template<typename data_type, typename key_type, int order, int L>
+void B_Tree<data_type, key_type, order, L>::split( Leaf*& n, Node* pre )
+{
+    if( n->count == L )
+    {
+        if( n == root )
+        {
+            
         }
         else
         {
