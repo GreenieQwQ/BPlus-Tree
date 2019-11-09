@@ -9,21 +9,59 @@ template<typename data_type, typename key_type, typename getKey, int order = 5, 
 class B_Tree
 {
 public:
-    B_Tree(): root(nullptr) {}
+    B_Tree(): root(nullptr)
+    {
+        init();
+    }
+private:
+    void init()
+    {
+        root = new Node( NODE );
+        root->tag = NODE;
+        root->count = 1;
+        root->key[0] = key_type(8);
+        
+        // left
+        root->branch.node[0] = new Node( LEAF );
+        Node* left = root->branch.node[0];
+        left->count = 2;
+        left->key[0] = 2;
+        left->key[1] = 4;
+        left->branch.leaf[0] = new Leaf( data_type(0), data_type(1) );
+        left->branch.leaf[1] = new Leaf( data_type(2), data_type(3) );
+        left->branch.leaf[2] = new Leaf( data_type(4), data_type(5) );
+
+        //right
+        root->branch.node[1] = new Node( LEAF );
+        Node* right = root->branch.node[1];
+        right->count = 2;
+        right->key[0] = 11;
+        right->key[1] = 13;
+        right->branch.leaf[0] = new Leaf( data_type(8), data_type(9) );
+        right->branch.leaf[1] = new Leaf( data_type(11), data_type(12) );
+        right->branch.leaf[2] = new Leaf( data_type(13), data_type(15) );
+    }
 
 private:
     enum State { success, failure, overflow, duplicate };
     
     struct Leaf
     {
+        Leaf( data_type a, data_type b )
+        {
+            data[0] = a;
+            data[1] = b;
+            count = 2;
+        }
+        Leaf() {}
         int count;
         data_type data[L];
     };
-    
+
+    enum NodeTag:char { LEAF, NODE };
     struct Node
     {
         int count;
-        enum NodeTag:char { LEAF, NODE };
         union Branch
         {
             Node* node[order];
@@ -38,9 +76,7 @@ private:
     union ptr
     {
         Node* node;
-        Leaf* leaf;
-        ptr( Node* n ): node(n) {} 
-        ptr(): node(nullptr) {}
+        Leaf* leaf; 
     }; //一个可以是叶子又可以是内点的union
 
     // struct insertNode
@@ -54,12 +90,11 @@ public:
     bool erase( const key_type& x ); 
     void display() const
     {
-        display(root.leaf);
+        display(root);
     }
 
 private:
-    ptr root;
-    int size;
+    Node* root;
     State insert( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch);
     State insert( Leaf*& l, const key_type& key, const data_type& data, key_type& newKey, Leaf*& newBranch);
     void insert_key( Node* n, const key_type& newkey, void* newBranch, size_t pos );
@@ -82,23 +117,11 @@ private:
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 bool B_Tree<data_type, key_type, getKey, order, L>::insert( const data_type& data )
 {
-    if( root.node == nullptr ) //空树
-    {
-        root.leaf = new Leaf;
-        insert_data( root.leaf, data, 0 );
-        return true;
-    }
-
     getKey get;
     key_type key = get( data ); //获取data的关键字
     key_type newKey;
-    ptr newBranch;
-    State result;
-    if( size <= L )
-        result = insert( root.leaf, key, data, newKey, newBranch.leaf );
-    else
-        result = insert( root.node, key, data, newKey, newBranch.node );
-    
+    Node* newBranch;
+    State result = insert( root, key, data, newKey, newBranch );
     if( result == overflow ) //以newKey和newBranch创建新根
     {
         Node* newRoot = new Node;
@@ -122,30 +145,30 @@ B_Tree<data_type, key_type, getKey, order, L>::insert( Node*& n, const key_type&
     size_t pos = findPos( n, key );
     ptr next_node { n->branch.node[pos] };
     
-    if( n->tag == Node::LEAF )
+    if( n->tag == LEAF )
     {
-        for( int i = 0; i < next_node->count; ++i )
-            if( data == next_node->data[i] )
+        for( int i = 0; i < next_node.leaf->count; ++i )
+            if( next_node.leaf->data[i] == data )
                 return duplicate;
     }
         
     key_type cur_newKey;
     ptr cur_newBranch;
     State result;
-    if( n->tag == Node::NODE )
-        result = insert( next_node, key, data, cur_newKey, cur_newBranch.node );
-    else if( n->tag == Node::LEAF )
-        result = insert( next_node, key, data, cur_newKey, cur_newBranch.leaf );
+    if( n->tag == NODE )
+        result = insert( next_node.node, key, data, cur_newKey, cur_newBranch.node );
+    else if( n->tag == LEAF )
+        result = insert( next_node.leaf, key, data, cur_newKey, cur_newBranch.leaf );
     
     if( result == overflow )
     {
         if( n->count < order - 1 )
         {
             result = success;
-            insert_key( n, cur_newKey, cur_newBranch, pos );
+            insert_key( n, cur_newKey, cur_newBranch.node, pos );
         }
         else
-            split( n, cur_newKey, cur_newBranch, pos, newKey, newBranch );
+            split( n, cur_newKey, cur_newBranch.node, pos, newKey, newBranch );
         //需要解决：含叶子与不含叶子是否有本质不同？    
         //通过下一级操作因overflow所产生的新键和新分支来更新newKey和newBranch给上一级使用
     }
@@ -224,7 +247,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_ty
     {
         //注意!!下标为order-2为第order-1个元素
         newBranch->key[i-mid] = n->key[i];
-        newBranch->branch[i-mid+1] = n->branch[i+1];
+        newBranch->branch.node[i-mid+1] = n->branch.node[i+1];
     } 
     n->count = mid;
     newBranch->count = order - 1 - mid;
@@ -235,7 +258,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_ty
         insert_key( n, cur_newKey, cur_newBranch, pos );
     
     newKey = n->key[n->count - 1];
-    newBranch = n->branch[n->count];
+    newBranch = n->branch.node[n->count];
     n->count--;   
 }   
 
@@ -265,7 +288,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Leaf* l, const data_t
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 void B_Tree<data_type, key_type, getKey, order, L>::display( Node* n, int indent ) const
 {
-    if( n->NodeTag == Node::NODE )
+    if( n->tag == NODE )
     {
         for( int i = n->count - 1; i >= 0; --i )
         {
@@ -275,7 +298,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::display( Node* n, int indent
         }
         display( n->branch.node[0], indent + 1 );
     }
-    else if( n->NodeTag == Node::LEAF )
+    else if( n->tag == LEAF )
     {
         for( int i = n->count - 1; i >= 0; --i )
         {
