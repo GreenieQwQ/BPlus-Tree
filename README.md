@@ -6,3 +6,8 @@
 特别说明：  
 void split( Node* n, const key_type& cur_newKey, Node* cur_newBranch, size_t pos, key_type& newKey, Node*& newBranch);  
 在调用split函数时需要对新申请的空间和传入结点n的的磁盘访问，但考虑到在调用split函数的上一级已经对n进行访问，认为此时n的内容已读入内存，因此在split中不再对n进行磁盘访问。  
+
+可以这么理解：
+Node* n;  
+当我们不需要用到“n->”即不需要访问指针里面的值时，不计访存次数  
+若我们用到了“n->”，则增加一次访存次数，且之后在未进行很多次新的访存的时候我们再使用“n->”时不计入访存次数  
