@@ -51,7 +51,7 @@ int main()
         tree.display();
     }
     
-    for( int i = 13; i < 25; ++i )
+    for( int i = 0; i < 100; ++i )
     {
         cout << endl << "insert" << i << ":" << endl;
         if(tree.insert( Record(i,i) ))
