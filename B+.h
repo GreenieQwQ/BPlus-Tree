@@ -1,7 +1,7 @@
 #ifndef BPLUS_H
 #define BPLUS_H
 
-#define UNIX
+#define WINDOWS
 
 #include <cstddef>
 #include <iostream>
@@ -99,7 +99,7 @@ private:
 public:
     bool contains( const key_type& x ) const;
     bool insert( const data_type& x );
-    bool erase( const key_type& x ); 
+    bool erase( const data_type& x ); 
     void display() const
     {
         display(root);
@@ -123,6 +123,23 @@ private:
     bool contains( Leaf* l, const key_type& x ) const;
     void display( Node* n, int indent = 0 ) const;
     void display( Leaf* l, int indent = 0 ) const;
+
+
+        //删除自定义的privata;
+    bool erase(Node*& n, const data_type& y);
+    bool remove_inleaf(Leaf* current, const data_type& x);
+    void restore_inleaf(Node* current, const int& position);
+    void restore_innode(Node* current, const int& position);
+
+    //restore_innode要用到的三个方法；
+    void movenode_left(Node* current, const int& position);
+    void movenode_right(Node* current, const int& position);
+    void movenode_combine(Node* current, const int& position);
+
+    //restore_in
+    void moveleaf_left(Node* current, const int& position);
+    void moveleaf_right(Node * current, const int& position);
+    void moveleaf_combine(Node* current, const int& keyposition);
     
     
 private:    
@@ -375,7 +392,310 @@ void B_Tree<data_type, key_type, getKey, order, L>::display( Leaf* l, int indent
         cout << l->data[i] << ' ';
 
     cout << endl;
-}   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//专门用于删除叶节点的数据，但是这里不删除节点；
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+bool B_Tree<data_type, key_type, getKey, order, L>::remove_inleaf(Leaf* current, const data_type& y)
+{
+    for(int i = 0; i<current -> count; i++)
+        if(current -> data[i] == y)
+        {
+            current -> count--;
+            while(i<current -> count)
+            {
+                current -> data[i] = current -> data[i+1];
+                ++i;
+            }
+            return true;
+        }
+    return false;
+}
+
+//该函数处理含有叶结点指针的节点的左旋转
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::moveleaf_left(Node* current, const int& position)
+{
+    increaseAccessTime(); //访问磁盘
+    getKey getkey;
+    Leaf* right = current -> branch.leaf[position+1];
+    Leaf* left = current -> branch.leaf[position];
+    current -> key[position] = getkey(right -> data[1]);
+    data_type temp = right -> data[0];
+    right -> count--;
+    for(int i = 0; i<right->count; i++)
+        right -> data[i] = right -> data[i+1];
+    int& tempcount = left -> count;
+    left -> data[tempcount++] = temp;
+}
+
+//该函数处理含有叶结点指针的节点的右旋转
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::moveleaf_right(Node* current, const int& position)
+{
+    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //访问磁盘
+    getKey getkey;
+    Leaf* left = current -> branch.leaf[position-1];
+    Leaf* right = current -> branch.leaf[position];
+    current -> key[position-1] = getkey(left -> data[1]);
+    data_type temp = left -> data[0];
+    left -> count--;
+    for(int i = 0; i<left->count; i++)
+        left -> data[i] = left -> data[i+1];
+    int& tempcount = right -> count;
+    right -> data[tempcount++] = temp;
+}
+
+//合并，我选择右边合到左边，这样少1步；
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::moveleaf_combine(Node* current, const int& keyposition)
+{
+    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //访问磁盘
+    //cout<<"moveleaf_combine"<<endl;
+    Leaf* left = current -> branch.leaf[keyposition];
+    Leaf* right = current -> branch.leaf[keyposition+1];
+    int temp = left -> count;
+    left -> count += right -> count;
+    //cout<<"hello"<<endl;
+    for(int i = temp; i<left -> count; i++)
+    {
+        left -> data[i] = right -> data[i-temp];//将右边的叶子的数据都移动到左边的叶子;
+    }
+    delete right;
+    for(int i = keyposition+1; i<current -> count; i++)//更新叶子指针数组；
+        current -> branch.leaf[i] = current -> branch.leaf[i+1];
+    current -> count--;//更新count;
+    for(int i = keyposition; i<current -> count; i++)//更新键值数组；
+        current -> key[i] = current -> key[i+1];
+    //cout<<"hello"<<endl;
+    //cout<<current -> count<<endl;
+}
+
+//对带有叶节点指针的node节点的调整
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::restore_inleaf(Node* current, const int& position)
+{
+    //cout<<position;
+    if(position == 0)
+    {
+        if(current -> branch.leaf[position+1] -> count > L/2)
+            moveleaf_left(current, position);
+        else
+            moveleaf_combine(current, 0);
+    }
+    else if(position == current-> count)
+    {
+        if(current -> branch.leaf[position-1] -> count > L/2)
+            moveleaf_right(current, position);
+        else
+            moveleaf_combine(current, position - 1);
+    }
+    else
+    {
+        if(current -> branch.leaf[position+1] -> count > L/2)
+        {
+            moveleaf_left(current, position);
+        }
+        else if(current -> branch.leaf[position-1] -> count > L/2)
+        {
+            moveleaf_right(current, position);
+        }
+        else
+        {
+            moveleaf_combine(current, position);
+            //cout<<"hello"<<endl;
+        }
+    }
+}
+
+//将右边元素放到左边
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::movenode_left(Node* current, const int& position)
+{
+    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //访问磁盘
+    Node* right = current -> branch.node[position+1];
+    Node* left = current -> branch.node[position];
+    key_type temp = current -> key[position];
+    current -> key[position] = right -> key[0];
+    Node* temp1 = right -> branch.node[0];
+    right -> count--;
+    for(int i=  0; i<right -> count; i++)
+    {
+        right -> key[i] = right -> key[i+1];
+        right -> branch.node[i] = right -> branch.node[i+1];
+    }
+    right -> branch.node[right -> count] = right -> branch.node[right -> count+1];
+    left -> key[left -> count++] = temp;
+    left -> branch.node[left -> count] = temp1;
+}
+
+//将左边元素放到右边
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::movenode_right(Node* current, const int& position)
+{
+    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //访问磁盘
+    Node* left = current -> branch.node[position-1];
+    Node* right = current -> branch.node[position];
+    key_type temp = current -> key[position-1];
+    current -> key[position-1] = left -> key[0];
+    Node* temp1 = left -> branch.node[0];
+    left -> count--;
+    for(int i = 0; i<left -> count; i++)
+    {
+        left -> key[i] = left -> key[i+1];
+        left -> branch.node[i] = left -> branch.node[i+1];
+    }
+    left -> branch.node[left -> count] = left -> branch.node[left -> count +1];
+    right -> key[right -> count++] = temp;
+    right -> branch.node[right -> count] = temp1;
+}
+
+//虽然用的for比较多，但是实际上循环次数不多；这里的参数keyposition代表关键词下标，需要注意；
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::movenode_combine(Node* current, const int& keyposition)
+{
+    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //访问磁盘
+    Node* left = current -> branch.node[keyposition];
+    Node* right = current -> branch.node[keyposition+1];
+    if(current -> count == 1 && current == root)
+    {
+        current -> tag = left -> tag;
+        int temp_count = left -> count;
+        for(int i = 0; i<temp_count+1; i++)
+        current -> branch.node[keyposition + i] = left -> branch.node[i];
+        for(int i = 0; i<right -> count+1; i++)
+        current -> branch.node[keyposition + temp_count + i + 1] = right -> branch.node[i];
+        current -> key[keyposition + temp_count] = current -> key[keyposition];
+        for(int i = 0; i<temp_count; i++)
+        current -> key[keyposition + i] = left -> key[i];
+        for(int i = 0; i<right -> count; i++)
+        current -> key[keyposition + temp_count +i +1] = right -> key[i];
+        current -> count = temp_count + current -> count + right -> count;
+        delete left;
+        delete right;
+    }
+    else
+    {
+        int temp_count = left -> count+1;
+        key_type temp_key = current -> key[keyposition];
+        current -> count -= 1;
+        for(int i = keyposition; i< current -> count; i++)
+        {
+            current -> key[i] = current -> key[i+1];
+            current -> branch.node[i+1] = current -> branch.node[i+2];
+        }
+        left -> key[left -> count] = temp_key;
+        left -> count += right -> count +1;
+        for(int i = temp_count; i< left-> count; i++)
+        {
+            left -> key[i] = right -> key[i-temp_count];
+            left -> branch.node[i] = right -> branch.node[i-temp_count];
+        }
+        left -> branch.node[left-> count] = right -> branch.node[right-> count];
+        delete right;
+    }
+}
+
+//每一层视情况决定是否调用这个函数，该调整针对子节点不是叶子节点的情；
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::restore_innode(Node* current, const int& position)
+{
+    if(position == 0)
+    {
+        if(current -> branch.node[position +1] -> count > (order-1)/2)
+            movenode_left(current, position);
+        else
+            movenode_combine(current, 0);
+    }
+    else if(position == current -> count)
+    {
+        if(current -> branch.node[position -1] -> count > (order-1)/2)
+            movenode_right(current, position);
+        else
+            movenode_combine(current, position -1);
+    }
+    else
+    {
+        if(current -> branch.node[position +1] -> count > (order-1)/2)
+            movenode_left(current, position);
+        else if(current -> branch.node[position -1] -> count > (order -1)/2)
+            movenode_right(current, position);
+        else
+            movenode_combine(current, position);
+    }
+}
+
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+bool B_Tree<data_type, key_type, getKey, order, L>::erase( const data_type& y)
+{
+    return erase(root, y);
+}
+
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+bool B_Tree<data_type, key_type, getKey, order, L>::erase(Node*& current, const data_type& y)
+{
+    getKey getkey;
+    key_type x = getkey(y);
+    increaseAccessTime(); //访问磁盘
+    if(current -> tag == LEAF)
+    {
+        int position = findPos(current, x);
+        bool to_return = remove_inleaf(current -> branch.leaf[position],y);
+        if(current -> branch.leaf[position] -> count < L/2)
+            restore_inleaf(current, position);
+        return to_return;
+    }
+    int position = findPos(current, x);
+    bool to_return = erase(current -> branch.node[position], y);
+    // if(current == root)
+    //     cout<< current -> branch.node[position] -> count;
+    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //访问磁盘
+    if(current -> branch.node[position] -> count < (order-1)/2)
+        restore_innode(current, position);
+    return to_return;
+}
 
 
 
