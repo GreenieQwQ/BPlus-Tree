@@ -241,7 +241,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_ty
 {
     newBranch = new Node( n->tag ); //分出的新结点的tag肯定和n相同
     size_t mid = order / 2;
-    if( pos > mid ) //使mid向后数的关键字个数总小于等于左半边的
+    if( pos >= mid ) //使mid向后数的关键字个数总小于等于左半边的
         mid++;
 
     for( int i = mid; i < order-1; ++i ) //拷贝key和branch 
@@ -253,7 +253,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_ty
     n->count = mid;
     newBranch->count = order - 1 - mid;
     
-    if( pos > mid ) //与mid自不自增无关 位置都是pos-mid 因为拷贝都把mid拷贝过去了 
+    if( pos >= mid ) //与mid自不自增无关 位置都是pos-mid 因为拷贝都把mid拷贝过去了 
         insert_key( newBranch, cur_newKey, cur_newBranch, pos - mid );
     else
         insert_key( n, cur_newKey, cur_newBranch, pos );
@@ -269,8 +269,8 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Leaf* l, const data_t
 {
     newBranch = new Leaf;
     size_t mid = L / 2;
-    if( pos > mid ) //使mid向后数的关键字个数总小于等于左半边的
-        mid++;
+    if( pos >= mid ) //使mid向后数的关键字个数总小于等于左半边的 
+        mid++;  //等号不可以去掉！！(为何？？)
 
     for( int i = mid; i < L; ++i ) //拷贝data和branch 
         newBranch->data[i-mid] = l->data[i];
@@ -278,7 +278,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Leaf* l, const data_t
     l->count = mid;
     newBranch->count = L - mid;
     
-    if( pos > mid ) //与mid自不自增无关 位置都是pos-mid 因为拷贝都把mid拷贝过去了 
+    if( pos >= mid ) //与mid自不自增无关 位置都是pos-mid 因为拷贝都把mid拷贝过去了 
         insert_data( newBranch, data, pos - mid );
     else
         insert_data( l, data, pos );
