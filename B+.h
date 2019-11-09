@@ -36,10 +36,10 @@ private:
         Node* right = root->branch.node[1];
         right->count = 2;
         right->key[0] = 11;
-        right->key[1] = 13;
+        right->key[1] = 27;
         right->branch.leaf[0] = new Leaf( data_type(8), data_type(9) );
         right->branch.leaf[1] = new Leaf( data_type(11), data_type(12) );
-        right->branch.leaf[2] = new Leaf( data_type(13), data_type(15) );
+        right->branch.leaf[2] = new Leaf( data_type(27), data_type(28) );
     }
 
 private:
@@ -93,7 +93,8 @@ public:
         display(root);
     }
 
-private:
+// private:
+public:
     Node* root;
     State insert( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch);
     State insert( Leaf*& l, const key_type& key, const data_type& data, key_type& newKey, Leaf*& newBranch);
@@ -257,8 +258,9 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_ty
     else
         insert_key( n, cur_newKey, cur_newBranch, pos );
     
+    //注意 插入完才能决定右半部分的branch【0】是什么
     newKey = n->key[n->count - 1];
-    newBranch = n->branch.node[n->count];
+    newBranch->branch.node[0] = n->branch.node[n->count]; 
     n->count--;   
 }   
 
