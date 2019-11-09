@@ -1,19 +1,36 @@
 #ifndef BPLUS_H
 #define BPLUS_H
 
+#define UNIX
+
 #include <cstddef>
 #include <iostream>
+#ifdef UNIX
+#include <unistd.h>
+void Sleep(int ms)
+{
+	struct timeval delay;
+	delay.tv_sec = 0;
+	delay.tv_usec = ms * 1000; // 20 ms
+	select(0, NULL, NULL, NULL, &delay);
+}
+#endif
+#ifdef WINDOWS
+#include <windows.h>
+#endif
+
 using namespace std;
 
 template<typename data_type, typename key_type, typename getKey, int order = 5, int L = 4>
 class B_Tree
 {
 public:
-    B_Tree(): root(nullptr)
+    B_Tree(): root(nullptr), accessTime(0)
     {
         init();
     }
 private:
+    void init( data_type data[ (L/2) * 2 ] ); 
     void init()
     {
         root = new Node( NODE );
@@ -79,11 +96,6 @@ private:
         Leaf* leaf; 
     }; //一个可以是叶子又可以是内点的union
 
-    // struct insertNode
-    // {}; //用于判断是将数据插入内点还是叶子，无意义
-    // struct insertLeaf
-    // {}; //用于判断是将数据插入内点还是叶子，无意义
-
 public:
     bool contains( const key_type& x ) const;
     bool insert( const data_type& x );
@@ -91,11 +103,14 @@ public:
     void display() const
     {
         display(root);
+        cout << "AccessTime: " << accessTime << " times." << endl;
     }
 
-// private:
-public:
+private:
     Node* root;
+    mutable int accessTime; //在存取（const函数）的时候仍需增加因此用mutable
+    
+    // int size;
     State insert( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch);
     State insert( Leaf*& l, const key_type& key, const data_type& data, key_type& newKey, Leaf*& newBranch);
     void insert_key( Node* n, const key_type& newkey, void* newBranch, size_t pos );
@@ -104,8 +119,11 @@ public:
     size_t findPos( Leaf* l, const data_type& d ) const;
     void split( Node* n, const key_type& cur_newKey, Node* cur_newBranch, size_t pos, key_type& newKey, Node*& newBranch);
     void split( Leaf* l, const data_type& data, size_t pos, key_type& newKey, Leaf*& newBranch );
+    bool contains( Node* n, const key_type& x ) const;
+    bool contains( Leaf* l, const key_type& x ) const;
     void display( Node* n, int indent = 0 ) const;
     void display( Leaf* l, int indent = 0 ) const;
+    
     
 private:    
     inline void displayIndent( int indent ) const
@@ -113,7 +131,39 @@ private:
         for( int i = 0; i < indent; ++i )
             cout << "\t";
     }
+    inline void increaseAccessTime() const
+    {
+        accessTime++;
+        // Sleep(20);
+    }
 };
+
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+bool B_Tree<data_type, key_type, getKey, order, L>::contains( const key_type& x ) const
+{
+    return contains( root, x );
+}
+
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+bool B_Tree<data_type, key_type, getKey, order, L>::contains( Node* n, const key_type& x ) const
+{
+    increaseAccessTime(); //访问磁盘
+    size_t pos = findPos( n, x );
+    if( n->tag == NODE )
+        return contains( n->branch.node[pos], x );
+    else if( n->tag == LEAF )
+        return contains( n->branch.leaf[pos], x );
+}
+
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+bool B_Tree<data_type, key_type, getKey, order, L>::contains( Leaf* l, const key_type& x ) const
+{
+    increaseAccessTime(); //访问磁盘
+    for( int i = 0; i < l->count; ++i )
+        if( l->data[i] == x )
+            return true;
+    return false;
+}
 
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 bool B_Tree<data_type, key_type, getKey, order, L>::insert( const data_type& data )
@@ -125,7 +175,7 @@ bool B_Tree<data_type, key_type, getKey, order, L>::insert( const data_type& dat
     State result = insert( root, key, data, newKey, newBranch );
     if( result == overflow ) //以newKey和newBranch创建新根
     {
-        Node* newRoot = new Node;
+        Node* newRoot = new Node; increaseAccessTime(); //访问磁盘
         newRoot->count = 1;
         newRoot->key[0] = newKey;
         newRoot->branch.node[0] = root;
@@ -143,6 +193,7 @@ template<typename data_type, typename key_type, typename getKey, int order, int 
 typename B_Tree<data_type, key_type, getKey, order, L>::State
 B_Tree<data_type, key_type, getKey, order, L>::insert( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch)
 {
+    increaseAccessTime(); //访问磁盘 
     size_t pos = findPos( n, key );
     ptr next_node { n->branch.node[pos] };
     
@@ -163,14 +214,14 @@ B_Tree<data_type, key_type, getKey, order, L>::insert( Node*& n, const key_type&
     
     if( result == overflow )
     {
+        increaseAccessTime(); //访问磁盘 
         if( n->count < order - 1 )
         {
             result = success;
             insert_key( n, cur_newKey, cur_newBranch.node, pos );
         }
         else
-            split( n, cur_newKey, cur_newBranch.node, pos, newKey, newBranch );
-        //需要解决：含叶子与不含叶子是否有本质不同？    
+            split( n, cur_newKey, cur_newBranch.node, pos, newKey, newBranch );  
         //通过下一级操作因overflow所产生的新键和新分支来更新newKey和newBranch给上一级使用
     }
     return result;
@@ -180,6 +231,7 @@ template<typename data_type, typename key_type, typename getKey, int order, int 
 typename B_Tree<data_type, key_type, getKey, order, L>::State
 B_Tree<data_type, key_type, getKey, order, L>::insert( Leaf*& l, const key_type& key, const data_type& data, key_type& newKey, Leaf*& newBranch )
 {
+    increaseAccessTime(); //访问磁盘
     State result = success;
     size_t pos = findPos( l, data );
     if( l->count < L )
@@ -239,6 +291,7 @@ size_t B_Tree<data_type, key_type, getKey, order, L>::findPos( Leaf* l, const da
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_type& cur_newKey, Node* cur_newBranch, size_t pos, key_type& newKey, Node*& newBranch)
 {
+    increaseAccessTime(); //访问磁盘
     newBranch = new Node( n->tag ); //分出的新结点的tag肯定和n相同
     size_t mid = order / 2;
     if( pos >= mid ) //使mid向后数的关键字个数总小于等于左半边的
@@ -267,10 +320,11 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_ty
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 void B_Tree<data_type, key_type, getKey, order, L>::split( Leaf* l, const data_type& data, size_t pos, key_type& newKey, Leaf*& newBranch )
 {
+    increaseAccessTime(); //访问磁盘
     newBranch = new Leaf;
     size_t mid = L / 2;
     if( pos >= mid ) //使mid向后数的关键字个数总小于等于左半边的 
-        mid++;  //等号不可以去掉！！(为何？？)
+        mid++;  //等号不可以去掉！！
 
     for( int i = mid; i < L; ++i ) //拷贝data和branch 
         newBranch->data[i-mid] = l->data[i];
