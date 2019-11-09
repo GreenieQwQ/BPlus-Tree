@@ -44,13 +44,19 @@ int main()
     B_Tree<Record,int,getKey> tree;
     cout << endl << "origin:" << endl;
     tree.display();
-    cout << endl << "insert16:" << endl;
-    tree.insert( Record(16,16) );
-    tree.display();
-    cout << endl << "insert17:" << endl;
-    tree.insert( Record(17,17) );
-    tree.display();
-    cout << endl << "insert18:" << endl;
-    tree.insert( Record(18,18) );
-    tree.display();
+    for( int i = 16; i < 25; ++i )
+    {
+        cout << endl << "insert" << i << ":" << endl;
+        tree.insert( Record(i,i) );
+        tree.display();
+    }
+    
+    for( int i = 13; i < 25; ++i )
+    {
+        cout << endl << "insert" << i << ":" << endl;
+        if(tree.insert( Record(i,i) ))
+            tree.display();
+        else
+            cout << "Duplicated." << endl;
+    }
 }
