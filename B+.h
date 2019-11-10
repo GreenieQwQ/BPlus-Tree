@@ -23,6 +23,7 @@ using namespace std;
 
 /*
     前提：传入的getKey为一个仿函数，要求传入一个data_type能够返回它的key_type的键值
+    前提：认为B+树的根永远不会退化至叶
 */
 template<typename data_type, typename key_type, typename getKey, int order = 5, int L = 4> 
 class B_Tree
@@ -30,10 +31,14 @@ class B_Tree
 public:
     B_Tree(): root(nullptr), accessTime(0)
     {
-        init();
+        init(); //默认初始化 固定的初始化值
+    }
+    B_Tree(data_type data[(L/2)*2]): root(nullptr), accessTime(0)
+    {
+        init(data); //采用传入的参数初始化B+树
     }
 private:
-    void init(data_type (&data)[(L/2)*2])
+    void init(data_type data [(L/2)*2])
     {
         getKey getkey;
         int init_count = L/2;
@@ -41,7 +46,7 @@ private:
         {
             for(int j = 0; j< init_count*2-i-1; j++)
             {
-                if(getkey(data[j])>getkey(data[j+1]));
+                if(getkey(data[j])>getkey(data[j+1]))
                     swap(data[j], data[j+1]);
             }
         }
