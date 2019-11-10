@@ -109,7 +109,6 @@ public:
 private:
     Node* root;
     mutable int accessTime; //在存取（const函数）的时候仍需增加因此用mutable
-    
     // int size;
     State insert( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch);
     State insert( Leaf*& l, const key_type& key, const data_type& data, key_type& newKey, Leaf*& newBranch);
@@ -123,24 +122,19 @@ private:
     bool contains( Leaf* l, const key_type& x ) const;
     void display( Node* n, int indent = 0 ) const;
     void display( Leaf* l, int indent = 0 ) const;
-
-
-        //删除自定义的privata;
+    //删除自定义的privata;
     bool erase(Node*& n, const data_type& y);
     bool remove_inleaf(Leaf* current, const data_type& x);
     void restore_inleaf(Node* current, const int& position);
     void restore_innode(Node* current, const int& position);
-
     //restore_innode要用到的三个方法；
     void movenode_left(Node* current, const int& position);
     void movenode_right(Node* current, const int& position);
     void movenode_combine(Node* current, const int& position);
-
     //restore_in
     void moveleaf_left(Node* current, const int& position);
     void moveleaf_right(Node * current, const int& position);
     void moveleaf_combine(Node* current, const int& keyposition);
-    
     
 private:    
     inline void displayIndent( int indent ) const
@@ -394,42 +388,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::display( Leaf* l, int indent
     cout << endl;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//erase:
 //专门用于删除叶节点的数据，但是这里不删除节点；
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 bool B_Tree<data_type, key_type, getKey, order, L>::remove_inleaf(Leaf* current, const data_type& y)
