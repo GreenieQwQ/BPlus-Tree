@@ -37,6 +37,10 @@ public:
     {
         init(data); //采用传入的参数初始化B+树
     }
+    ~B_Tree()
+    {
+        clear();
+    }
 private:
     void init(data_type data [(L/2)*2])
     {
@@ -153,6 +157,13 @@ public:
         display(root);
         displayAccessTime();
     }
+    /* 
+        功能：释放B+树
+    */
+    void clear()
+    {
+        clear(root);
+    }
 
 private:
     Node* root;
@@ -261,7 +272,19 @@ private:
         功能：合并父亲节点和有current和keyposition确定的两个子节点
     */
     void moveleaf_combine(Node* current, const int& keyposition);
-    
+    /* 
+        功能：采用后序遍历释放结点n及其分支
+    */
+    void clear( Node* n );
+    /* 
+        功能：采用后序遍历释放叶子l
+    */
+    inline void clear( Leaf* l )
+    {
+        delete l;
+        l = nullptr;
+    }
+
 private:    
     inline void displayIndent( int indent ) const
     {
@@ -520,6 +543,20 @@ void B_Tree<data_type, key_type, getKey, order, L>::display( Leaf* l, int indent
         cout << l->data[i] << ' ';
 
     cout << endl;
+}
+
+
+template<typename data_type, typename key_type, typename getKey, int order, int L>
+void B_Tree<data_type, key_type, getKey, order, L>::clear( Node* n )
+{
+    if( n->tag == NODE )
+        for( int i = n->count ; i >= 0; --i )
+            clear( n->branch.node[i] );
+    else if( n->tag == LEAF )   
+        for( int i = n->count ; i >= 0; --i )
+            clear( n->branch.leaf[i] );
+    delete n;
+    n = nullptr;
 }
 
 //erase:
