@@ -17,3 +17,8 @@ Linux下测试请在头文件前输入：
 Windows下测试请在头文件前输入：  
 #define WINDOWS  
 （二者请不要同时定义）  
+
+测试文件在test.cpp 编译运行即可  
+test.cpp里main函数的初始化的4个数据可以随意改动  
+如果想自己编写测试函数 建议阅读test.cpp里测试的方法以后再自行测试  
+本项目的github网址：https://github.com/GreenieQwQ/BPlus-Tree  欢迎大家一起讨论。
