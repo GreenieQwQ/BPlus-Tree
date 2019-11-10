@@ -38,7 +38,12 @@ public:
         init(data); //采用传入的参数初始化B+树
     }
 private:
-    void init(data_type data [(L/2)*2])
+    /* 
+        功能：利用输入的(L/2)*2个数据初始化形成一颗最小的B+树
+        前提：key_type重载了>或者是能够直接比较
+        结果：形成由一个根和两片叶子组成的B+树
+    */
+    void init(data_type data[(L/2)*2])
     {
         getKey getkey;
         int init_count = L/2;
@@ -231,34 +236,42 @@ private:
     bool remove_inleaf(Leaf* current, const data_type& x);
     /* 
         功能：删除单个数据后在叶节点和内部节点之间依据B+树规则对树进行重新调整
+        前提：有叶子的数据数目小于L/2
     */
     void restore_inleaf(Node* current, const int& position);
     /* 
         功能：删除单个数据在内部节点和内部节点之间依据B+树规则对树进行重新调整
+        前提：有内部节点关键词数目小于(order-1)/2
     */
     void restore_innode(Node* current, const int& position);
     /* 
-        功能：由current和position确定的叶节点从其右兄弟叶子借得一个数据，并调整关键字
+        功能：父亲的一个关键字下拉，右兄弟一个关键字上提，实现左旋转
+        前提：右兄弟关键词数据大于(order-1)/2
     */
     void movenode_left(Node* current, const int& position);
     /* 
-        功能：由current和position确定的叶节点从其左兄弟叶子借得一个数据，并调整关键字
+        功能：父亲的一个关键字下拉，左兄弟一个关键字上提，实现右旋转
+        前提：左兄弟关键词数据大于(order-1)/2
     */
     void movenode_right(Node* current, const int& position);
     /* 
-        功能：删除一个关键字，合并其原来的两个叶子节点
+        功能：合并父亲节点和有current和keyposition确定的两个子节点
+        前提：左右兄弟关键词数目都小于(order-1)/2
     */
     void movenode_combine(Node* current, const int& keyposition);
     /* 
-        功能：父亲的一个关键字下拉，右兄弟一个关键字上提，实现左旋转
+        功能：由current和position确定的叶节点从其右兄弟叶子借得一个数据，并调整关键字
+        前提：右兄弟的数据数目大于L/2
     */
     void moveleaf_left(Node* current, const int& position);
     /* 
-        功能：父亲的一个关键字下拉，左兄弟一个关键字上提，实现左旋转
+        功能：由current和position确定的叶节点从其左兄弟叶子借得一个数据，并调整关键字
+        前提：左兄弟的数据数目大于L/2
     */
     void moveleaf_right(Node * current, const int& position);
     /* 
-        功能：合并父亲节点和有current和keyposition确定的两个子节点
+        功能：删除一个关键字，合并其原来的两个叶子节点
+        前提：左右叶子数据数目都小于L/2
     */
     void moveleaf_combine(Node* current, const int& keyposition);
     
