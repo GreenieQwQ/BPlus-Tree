@@ -19,10 +19,12 @@ void Sleep(int ms)
 #ifdef WINDOWS
 #include <windows.h>
 #endif
-
 using namespace std;
 
-template<typename data_type, typename key_type, typename getKey, int order = 5, int L = 4>
+/*
+    前提：传入的getKey为一个仿函数，要求传入一个data_type能够返回它的key_type的键值
+*/
+template<typename data_type, typename key_type, typename getKey, int order = 5, int L = 4> 
 class B_Tree
 {
 public:
@@ -169,11 +171,13 @@ private:
     void split( Leaf* l, const data_type& data, size_t pos, key_type& newKey, Leaf*& newBranch );
     /*
         功能：查找n和其包含的分支中是否含有键为x的data
+        前提：x重载了==运算符
         结果：若包含则返回true 否则返回false
     */
     bool contains( Node* n, const key_type& x ) const;
     /*  
         功能：查找叶子l是否含有键为x的data
+        前提：x重载了==运算符
         结果：若包含则返回true 否则返回false
     */
     bool contains( Leaf* l, const key_type& x ) const;
