@@ -33,7 +33,31 @@ public:
         init();
     }
 private:
-    void init( data_type data[ (L/2) * 2 ] ); 
+    void init(data_type (&data)[(L/2)*2])
+    {
+        getKey getkey;
+        int init_count = L/2;
+        for(int i = 0; i< init_count*2; i++)
+        {
+            for(int j = 0; j< init_count*2-i-1; j++)
+            {
+                if(getkey(data[j])>getkey(data[j+1]));
+                    swap(data[j], data[j+1]);
+            }
+        }
+        root = new Node (LEAF);
+        root -> count = 1;
+        root -> branch.leaf[0] = new Leaf();
+        root -> branch.leaf[1] = new Leaf();
+        root -> branch.leaf[0] -> count = init_count;
+        root -> branch.leaf[1] -> count = init_count;
+        for(int i = 0; i< init_count; i++)
+        {
+            root -> branch.leaf[0] -> data[i] = data[i];
+            root -> branch.leaf[1] -> data[i] = data[i+init_count];
+        }
+        root -> key[0] = getkey(data[init_count]);
+    }
     void init()
     {
         root = new Node( NODE );
@@ -190,18 +214,47 @@ private:
     */
     void display( Leaf* l, int indent = 0 ) const;
 
-    //erase的功能函数;
+    /* 
+        功能：从树中删除叶子中的数据y
+        结果：若删除成功则返回true,删除失败返回false
+    */
     bool erase(Node*& n, const data_type& y);
+    /* 
+        功能：给定叶节点指针current,删除该叶节点内的数据x
+        结果：若删除成功则返回true,删除失败返回false
+    */
     bool remove_inleaf(Leaf* current, const data_type& x);
+    /* 
+        功能：删除单个数据后在叶节点和内部节点之间依据B+树规则对树进行重新调整
+    */
     void restore_inleaf(Node* current, const int& position);
+    /* 
+        功能：删除单个数据在内部节点和内部节点之间依据B+树规则对树进行重新调整
+    */
     void restore_innode(Node* current, const int& position);
-    //restore_innode要用到的三个方法；
+    /* 
+        功能：由current和position确定的叶节点从其右兄弟叶子借得一个数据，并调整关键字
+    */
     void movenode_left(Node* current, const int& position);
+    /* 
+        功能：由current和position确定的叶节点从其左兄弟叶子借得一个数据，并调整关键字
+    */
     void movenode_right(Node* current, const int& position);
-    void movenode_combine(Node* current, const int& position);
-    //restore_in
+    /* 
+        功能：删除一个关键字，合并其原来的两个叶子节点
+    */
+    void movenode_combine(Node* current, const int& keyposition);
+    /* 
+        功能：父亲的一个关键字下拉，右兄弟一个关键字上提，实现左旋转
+    */
     void moveleaf_left(Node* current, const int& position);
+    /* 
+        功能：父亲的一个关键字下拉，左兄弟一个关键字上提，实现左旋转
+    */
     void moveleaf_right(Node * current, const int& position);
+    /* 
+        功能：合并父亲节点和有current和keyposition确定的两个子节点
+    */
     void moveleaf_combine(Node* current, const int& keyposition);
     
 private:    
