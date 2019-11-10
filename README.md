@@ -11,3 +11,9 @@ void split( Node* n, const key_type& cur_newKey, Node* cur_newBranch, size_t pos
 Node* n;  
 当我们不需要用到“n->”即不需要访问指针里面的值时，不计访存次数  
 若我们用到了“n->”，则增加一次访存次数，且之后在未进行很多次新的访存的时候我们再使用“n->”时不计入访存次数  
+
+Linux下测试请在头文件前输入：  
+#define UNIX  
+Windows下测试请在头文件前输入：  
+#define WINDOWS  
+（二者请不要同时定义）  
