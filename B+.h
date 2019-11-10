@@ -1,7 +1,8 @@
 #ifndef BPLUS_H
 #define BPLUS_H
 
-#define WINDOWS
+#define UNIX
+#define DELAY
 
 #include <cstddef>
 #include <iostream>
@@ -60,10 +61,11 @@ private:
     }
 
 private:
-    enum State { success, failure, overflow, duplicate };
+    enum State { success, overflow, duplicate }; //insert可能出现的状态
     
     struct Leaf
     {
+        //此构造函数仅用于测试 无意义
         Leaf( data_type a, data_type b )
         {
             data[0] = a;
@@ -75,7 +77,7 @@ private:
         data_type data[L];
     };
 
-    enum NodeTag:char { LEAF, NODE };
+    enum NodeTag:char { LEAF, NODE };   //用于分辨是这个结点是否连接树叶
     struct Node
     {
         int count;
@@ -84,7 +86,7 @@ private:
             Node* node[order];
             Leaf* leaf[order];
         };
-        Branch branch;
+        Branch branch;  //结点所存储的分支
         key_type key[order-1];
         NodeTag tag;
         Node( NodeTag t = NODE ): tag(t) {}
@@ -94,35 +96,97 @@ private:
     {
         Node* node;
         Leaf* leaf; 
-    }; //一个可以是叶子又可以是内点的union
+    }; //一个可以是叶子又可以是内点的union指针
 
 public:
+    /*
+        功能：查找B树中是否有含键值为x的数据
+        结果：若包含则返回true 否则返回false
+    */
     bool contains( const key_type& x ) const;
+    /*
+        功能：向B树中插入data x
+        结果：若成功则返回true，重复返回false
+    */
     bool insert( const data_type& x );
+    /*
+        功能：在B树中删除data x
+        结果：若成功则返回true，若树中无x则返回false
+    */
     bool erase( const data_type& x ); 
+    /*
+        功能：打印B树和总共对磁盘的访问次数
+    */
     void display() const
     {
         display(root);
-        cout << "AccessTime: " << accessTime << " times." << endl;
+        displayAccessTime();
     }
 
 private:
     Node* root;
     mutable int accessTime; //在存取（const函数）的时候仍需增加因此用mutable
-    // int size;
+    //  int size;
+    /*
+        功能：对内结点插入键值为key的数据data，若这个操作使得结点分裂，产生的新键放入newKey中，产生的新分支放入newBranch中
+        结果：若插入成功则返回true 若重复则返回false
+    */
     State insert( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch);
+    /*
+        功能：对叶子插入键值为key的数据data，若这个操作使得叶子分裂，产生的新键放入newKey中，产生的新分支放入newBranch中
+        结果：若插入成功则返回true 若重复则返回false
+    */
     State insert( Leaf*& l, const key_type& key, const data_type& data, key_type& newKey, Leaf*& newBranch);
+    /* 
+        功能：向内结点n插入关键字key
+        前提：n未满
+    */
     void insert_key( Node* n, const key_type& newkey, void* newBranch, size_t pos );
+    /* 
+        功能：向叶子l插入数据data
+        前提：l未满
+    */
     void insert_data( Leaf* l, const data_type& newdata, size_t pos ); 
+    /*
+        功能：在内结点n中的关键字中寻找关键字x应当出现的位置
+        前提：x重载了<运算符
+    */
     size_t findPos( Node* n, const key_type& x ) const;
+    /*
+        功能：在叶子l中的数据中寻找数据d应当出现的位置
+        前提：x重载了<运算符
+    */
     size_t findPos( Leaf* l, const data_type& d ) const;
+    /*
+        功能：通过插入cur_newKey和cur_newBranch使得结点n分裂 产生的新键置入newKey中 产生的新分支置入newBranch中
+        前提：n已满
+    */
     void split( Node* n, const key_type& cur_newKey, Node* cur_newBranch, size_t pos, key_type& newKey, Node*& newBranch);
+    /*
+        功能：通过插入data使得结点n分裂 产生的新键置入newKey中 产生的新分支置入newBranch中
+        前提：l已满
+    */
     void split( Leaf* l, const data_type& data, size_t pos, key_type& newKey, Leaf*& newBranch );
+    /*
+        功能：查找n和其包含的分支中是否含有键为x的data
+        结果：若包含则返回true 否则返回false
+    */
     bool contains( Node* n, const key_type& x ) const;
+    /*  
+        功能：查找叶子l是否含有键为x的data
+        结果：若包含则返回true 否则返回false
+    */
     bool contains( Leaf* l, const key_type& x ) const;
+    /*
+        功能：打印结点n及其所包含分支
+    */
     void display( Node* n, int indent = 0 ) const;
+    /* 
+        功能：打印叶子l中的数据
+    */
     void display( Leaf* l, int indent = 0 ) const;
-    //删除自定义的privata;
+
+    //erase的功能函数;
     bool erase(Node*& n, const data_type& y);
     bool remove_inleaf(Leaf* current, const data_type& x);
     void restore_inleaf(Node* current, const int& position);
@@ -145,7 +209,14 @@ private:
     inline void increaseAccessTime() const
     {
         accessTime++;
-        // Sleep(20);
+        #ifdef DELAY
+        Sleep(20);
+        #endif
+    }
+public:
+    inline void displayAccessTime() const //打印访存次数
+    {
+        cout << "AccessTime: " << accessTime << " times." << endl;
     }
 };
 
@@ -170,8 +241,9 @@ template<typename data_type, typename key_type, typename getKey, int order, int 
 bool B_Tree<data_type, key_type, getKey, order, L>::contains( Leaf* l, const key_type& x ) const
 {
     increaseAccessTime(); //访问磁盘
+    getKey get;
     for( int i = 0; i < l->count; ++i )
-        if( l->data[i] == x )
+        if( get(l->data[i]) == x )
             return true;
     return false;
 }
