@@ -321,6 +321,11 @@ public:
     {
         cout << "AccessTime: " << accessTime << " times." << endl;
     }
+    inline void displaySize() const //打印Node和Leaf所占用的空间 因为对齐原因会比实际占用的要大
+    {
+        cout << "\nNode: " << sizeof(Node) << " Bytes"
+            << "\nLeaf: " << sizeof(Leaf) << " Bytes\n";
+    }
 };
 
 template<typename data_type, typename key_type, typename getKey, int order, int L>
