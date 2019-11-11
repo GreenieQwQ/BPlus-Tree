@@ -293,11 +293,11 @@ private:
     /* 
         功能：采用后序遍历释放结点n及其分支
     */
-    void clear( Node* n );
+    void clear( Node*& n );
     /* 
         功能：采用后序遍历释放叶子l
     */
-    inline void clear( Leaf* l )
+    inline void clear( Leaf*& l )
     {
         delete l;
         l = nullptr;
@@ -565,7 +565,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::display( Leaf* l, int indent
 
 
 template<typename data_type, typename key_type, typename getKey, int order, int L>
-void B_Tree<data_type, key_type, getKey, order, L>::clear( Node* n )
+void B_Tree<data_type, key_type, getKey, order, L>::clear( Node*& n )
 {
     if( n->tag == NODE )
         for( int i = n->count ; i >= 0; --i )

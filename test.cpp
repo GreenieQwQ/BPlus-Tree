@@ -111,7 +111,7 @@ int main()
     cout << "\nFinal Tree and AccessTime:\n";
     tree.display();
 
-    cout << "Test for initial function" << endl;
+    cout << "\nTest for initial function:" << endl;
     cout << "Origin:" << endl;
     tree.init(ini);
     tree.display();
