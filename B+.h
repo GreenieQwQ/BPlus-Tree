@@ -1,7 +1,7 @@
 #ifndef BPLUS_H
 #define BPLUS_H
 
-#define UNIX
+#define WINDOWS
 #define DELAY
 
 #include <cstddef>
@@ -116,14 +116,14 @@ private:
             count = 2;
         }
         Leaf() {}
-        int count;
+        char count;
         data_type data[L];
     };
 
     enum NodeTag:char { LEAF, NODE };   //用于分辨是这个结点是否连接树叶
     struct Node
     {
-        int count;
+        char count;
         union Branch
         {
             Node* node[order];
@@ -609,7 +609,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::moveleaf_left(Node* current,
     right -> count--;
     for(int i = 0; i<right->count; i++)
         right -> data[i] = right -> data[i+1];
-    int& tempcount = left -> count;
+    char& tempcount = left -> count;
     left -> data[tempcount++] = temp;
 }
 
@@ -627,7 +627,7 @@ void B_Tree<data_type, key_type, getKey, order, L>::moveleaf_right(Node* current
     left -> count--;
     for(int i = 0; i<left->count; i++)
         left -> data[i] = left -> data[i+1];
-    int& tempcount = right -> count;
+    char& tempcount = right -> count;
     right -> data[tempcount++] = temp;
 }
 
