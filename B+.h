@@ -41,7 +41,7 @@ public:
     {
         clear();
     }
-private:
+public:
     /* 
         功能：利用输入的(L/2)*2个数据初始化形成一颗最小的B+树
         前提：key_type重载了>或者是能够直接比较
@@ -49,6 +49,7 @@ private:
     */
     void init(data_type data [(L/2)*2])
     {
+        clear();
         getKey getkey;
         int init_count = L/2;
         for(int i = 0; i< init_count*2; i++)
@@ -72,6 +73,8 @@ private:
         }
         root -> key[0] = getkey(data[init_count]);
     }
+private:
+    //测试用初始化函数
     void init()
     {
         root = new Node( NODE );
@@ -167,7 +170,9 @@ public:
     */
     void clear()
     {
-        clear(root);
+        if( root != nullptr )
+            clear(root);
+        accessTime = 0;
     }
 
 private:
