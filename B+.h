@@ -335,7 +335,7 @@ public:
             << "==== You will get the ideal result:\n"
             << "==== Node: 40 Bytes\n"
             << "==== Leaf: 36 Bytes\n";
-1    }
+    }
 };
 
 template<typename data_type, typename key_type, typename getKey, int order, int L>
