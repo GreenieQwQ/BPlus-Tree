@@ -115,4 +115,5 @@ int main()
     cout << "Origin:" << endl;
     tree.init(ini);
     tree.display();
+    tree.displaySize();
 }
