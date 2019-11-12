@@ -1,6 +1,7 @@
 #ifndef BPLUS_H
 #define BPLUS_H
 
+//	#define UNIX
 #define WINDOWS
 #define DELAY
 
