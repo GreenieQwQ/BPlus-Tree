@@ -120,19 +120,15 @@ private:
     };
 
     /**
-     * 因字节对齐原因
-     * 数据储存的顺序不能够改变
-     * 若为32位机器 order = 5 时
-     * sizeof(Node) = 16 + 1 + 1 + (2) + 20 = 40 字节
-     * 其中(2)用于填充
-     * 在64位机器不能够用sizeof测试大小——指针大小8字节
+     * 使用32位编译器编译 指针大小为4字节
+     * 在64位编译器编译下调用displaySize函数不能够等到期望结果——指针大小为8字节
      */
     enum NodeTag:char { LEAF, NODE };   //用于分辨是这个结点是否连接树叶
     struct Node 
     {
-        key_type key[order-1];
         char count;
         NodeTag tag;
+        key_type key[order-1];
         union Branch
         {
             Node* node[order];
@@ -330,11 +326,16 @@ public:
     }
     inline void displaySize() const //打印Node和Leaf所占用的空间 因为对齐原因会比实际占用的要大
     {
-        cout << "\nNode: " << sizeof(Node) << " Bytes"
+        cout << "\nDisplaying Node and Leaf's size:" 
+            << "\nNode: " << sizeof(Node) << " Bytes"
             << "\nLeaf: " << sizeof(Leaf) << " Bytes\n"
-            << "For it's a 64-bits machine, sizeof a pointer is 8 Bytes,\n"
-            << "this function is just for fun.\n";
-    }
+            << "====If using a 64-bits complier, sizeof a pointer is 8 Bytes,\n"
+            << "====then this function is just for fun.\n"
+            << "====If using a 32-bits complier (you can use dev-cpp to use it),\n"
+            << "====You will get the ideal result:\n"
+            << "====Node: 40 Bytes\n"
+            << "====Leaf: 36 Bytes\n";
+1    }
 };
 
 template<typename data_type, typename key_type, typename getKey, int order, int L>
