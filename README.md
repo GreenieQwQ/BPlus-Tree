@@ -20,5 +20,7 @@ Windows下测试请在头文件前输入：
 
 测试文件为test.cpp 编译运行即可  
 test.cpp里main函数的初始化的4个数据可以随意改动  
+B+树类提供函数dislplaySize()显示结点和叶子的大小 但是！！请一定要在32位编译器环境下才调用这个函数 因为64位编译器下指针大小为8不能显示期望的结果  
+32位编译器可以使用dev-cpp来调用(右上角可选择编译器)    
 如果想自己编写测试函数 建议阅读test.cpp里测试的方法以后再自行测试  
 本项目的github网址：https://github.com/GreenieQwQ/BPlus-Tree  欢迎大家一起讨论。
