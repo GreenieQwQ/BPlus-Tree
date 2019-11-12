@@ -120,7 +120,7 @@ int main()
 	 *——在32位机器下指针大小才为4
 	 *可用dev-cpp使用32位编译器编译
 	 */
-	//	#define COMPILER32
+	// #define COMPILER32
 	#ifdef COMPILER32 
     tree.displaySize();
 	#endif
