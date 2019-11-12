@@ -115,13 +115,13 @@ int main()
     cout << "Origin:" << endl;
     tree.init(ini);
     tree.display();
-	/**
+    /**
 	 *若确认使用32位的编译器可定义宏COMPILER32来显示结点和树叶的大小
 	 *——在32位机器下指针大小才为4
 	 *可用dev-cpp使用32位编译器编译
 	 */
-	// #define COMPILER32
-	#ifdef COMPILER32 
+    // #define COMPILER32
+    #ifdef COMPILER32 
     tree.displaySize();
-	#endif
+    #endif
 }
