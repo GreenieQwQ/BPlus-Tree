@@ -329,12 +329,12 @@ public:
         cout << "\nDisplaying Node and Leaf's size:" 
             << "\nNode: " << sizeof(Node) << " Bytes"
             << "\nLeaf: " << sizeof(Leaf) << " Bytes\n"
-            << "====If using a 64-bits complier, sizeof a pointer is 8 Bytes,\n"
-            << "====then this function is just for fun.\n"
-            << "====If using a 32-bits complier (you can use dev-cpp to use it),\n"
-            << "====You will get the ideal result:\n"
-            << "====Node: 40 Bytes\n"
-            << "====Leaf: 36 Bytes\n";
+            << "==== If using a 64-bits complier, sizeof a pointer is 8 Bytes,\n"
+            << "==== then this function is just for fun.\n"
+            << "==== If using a 32-bits complier (you can use dev-cpp to use it),\n"
+            << "==== You will get the ideal result:\n"
+            << "==== Node: 40 Bytes\n"
+            << "==== Leaf: 36 Bytes\n";
 1    }
 };
 
