@@ -104,8 +104,7 @@ private:
     }
 
 private:
-    enum State { success, overflow, duplicate }; //insert可能出现的状态
-    
+    enum State { success, overflow, duplicate }; //insert函数可能返回的状态
     struct Leaf
     {
         //此构造函数仅用于测试 无意义
@@ -120,18 +119,26 @@ private:
         data_type data[L];
     };
 
+    /**
+     * 因字节对齐原因
+     * 数据储存的顺序不能够改变
+     * 若为32位机器 order = 5 时
+     * sizeof(Node) = 16 + 1 + 1 + (2) + 20 = 40 字节
+     * 其中(2)用于填充
+     * 在64位机器不能够用sizeof测试大小——指针大小8字节
+     */
     enum NodeTag:char { LEAF, NODE };   //用于分辨是这个结点是否连接树叶
-    struct Node
+    struct Node 
     {
+        key_type key[order-1];
         char count;
+        NodeTag tag;
         union Branch
         {
             Node* node[order];
             Leaf* leaf[order];
         };
         Branch branch;  //结点所存储的分支
-        key_type key[order-1];
-        NodeTag tag;
         Node( NodeTag t = NODE ): tag(t) {}
     };
     
@@ -324,7 +331,9 @@ public:
     inline void displaySize() const //打印Node和Leaf所占用的空间 因为对齐原因会比实际占用的要大
     {
         cout << "\nNode: " << sizeof(Node) << " Bytes"
-            << "\nLeaf: " << sizeof(Leaf) << " Bytes\n";
+            << "\nLeaf: " << sizeof(Leaf) << " Bytes\n"
+            << "For it's a 64-bits machine, sizeof a pointer is 8 Bytes,\n"
+            << "this function is just for fun.\n";
     }
 };
 
