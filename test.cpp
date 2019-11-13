@@ -50,12 +50,13 @@ int main()
     ini[3] = Record(28);
 
     B_Tree<Record,int,getKey> tree(ini);
-    cout << endl << "origin:" << endl;
+    cout << "==== M = 5\n==== L = 4\n" 
+    << endl << "==== Origin:\n";
     tree.display();
     
-    for( int i = 0; i < 100; ++i )
+    for( int i = -20; i < 100; ++i )
     {
-        cout << endl << "insert " << i << ":" << endl;
+        cout << endl << "Insert " << i << ":" << endl;
         if(tree.insert( Record(i) ))
             tree.display();
         else
@@ -64,7 +65,7 @@ int main()
 
     for( int i = 10; i < 60; ++i )
     {
-        cout << endl << "erase " << i << ":" << endl;
+        cout << endl << "Erase " << i << ":" << endl;
         if(tree.erase( Record(i) ))
             tree.display();
         else
@@ -112,7 +113,8 @@ int main()
     tree.display();
 
     cout << "\nTest for initial function:" << endl;
-    cout << "Origin:" << endl;
+    cout << "==== M = 5\n==== L = 4\n";
+    cout << "==== Origin:" << endl;
     tree.init(ini);
     tree.display();
     /**
