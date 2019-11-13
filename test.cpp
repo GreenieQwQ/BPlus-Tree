@@ -44,18 +44,19 @@ int main()
     //5阶B+树、L=4 
     //认为树初始状态根不为叶子——因此至少需要（L/2）*2 = 4个数据来初始化B+树
     Record ini[ 2 * 2 ]; //初始化树的数据 顺序随意
-    ini[0] = Record(0);
+    ini[0] = Record(15);
     ini[1] = Record(23);
-    ini[2] = Record(9);
-    ini[3] = Record(28);
+    ini[2] = Record(89);
+    ini[3] = Record(50);
 
     B_Tree<Record,int,getKey> tree(ini);
-    cout << endl << "origin:" << endl;
+    cout << "==== Initial:\n==== M = 5\n==== L = 4\n" 
+    << endl << "==== Origin:\n";
     tree.display();
     
     for( int i = 0; i < 100; ++i )
     {
-        cout << endl << "insert " << i << ":" << endl;
+        cout << endl << "Insert " << i << ":" << endl;
         if(tree.insert( Record(i) ))
             tree.display();
         else
@@ -64,14 +65,14 @@ int main()
 
     for( int i = 10; i < 60; ++i )
     {
-        cout << endl << "erase " << i << ":" << endl;
+        cout << endl << "Erase " << i << ":" << endl;
         if(tree.erase( Record(i) ))
             tree.display();
         else
             cout << "Not exist." << endl;
     }
 
-    cout << "Validating contains: \"Obs\" means there's some situation.\n";
+    cout << "\n==== Validating: containing \"Obs\" means there's some situation.\n";
     for( int i = 0; i < 10; ++i )
     {
         cout << endl << "Validating " << i << ":" << endl;
@@ -112,7 +113,8 @@ int main()
     tree.display();
 
     cout << "\nTest for initial function:" << endl;
-    cout << "Origin:" << endl;
+    cout << "==== M = 5\n==== L = 4\n";
+    cout << "==== Origin:" << endl;
     tree.init(ini);
     tree.display();
     /**
