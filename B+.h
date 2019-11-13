@@ -323,11 +323,11 @@ private:
 public:
     inline void displayAccessTime() const //打印访存次数
     {
-        cout << "AccessTime: " << accessTime << " times." << endl;
+        cout << "==== AccessTime: " << accessTime << " times." << endl;
     }
     inline void displaySize() const //打印Node和Leaf所占用的空间 因为对齐原因会比实际占用的要大
     {
-        cout << "\nDisplaying Node and Leaf's size:" 
+        cout << "\n==== Displaying Node and Leaf's size:" 
             << "\nNode: " << sizeof(Node) << " Bytes"
             << "\nLeaf: " << sizeof(Leaf) << " Bytes\n"
             << "==== If using a 64-bits complier, sizeof a pointer is 8 Bytes,\n"
