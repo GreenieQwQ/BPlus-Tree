@@ -377,7 +377,7 @@ bool B_Tree<data_type, key_type, getKey, order, L>::insert( const data_type& dat
     State result = insert( root, key, data, newKey, newBranch );
     if( result == overflow ) //以newKey和newBranch创建新根
     {
-        Node* newRoot = new Node; increaseAccessTime(); //访问磁盘
+        Node* newRoot = new Node; increaseAccessTime(); //写入磁盘
         newRoot->count = 1;
         newRoot->key[0] = newKey;
         newRoot->branch.node[0] = root;
@@ -395,7 +395,7 @@ template<typename data_type, typename key_type, typename getKey, int order, int 
 typename B_Tree<data_type, key_type, getKey, order, L>::State
 B_Tree<data_type, key_type, getKey, order, L>::insert( Node*& n, const key_type& key, const data_type& data, key_type& newKey, Node*& newBranch)
 {
-    increaseAccessTime(); //访问磁盘 
+    increaseAccessTime(); //读取磁盘 
     size_t pos = findPos( n, key );
     ptr next_node { n->branch.node[pos] };
     
@@ -416,7 +416,7 @@ B_Tree<data_type, key_type, getKey, order, L>::insert( Node*& n, const key_type&
     
     if( result == overflow )
     {
-        increaseAccessTime(); //访问磁盘 
+        increaseAccessTime(); //读取磁盘
         if( n->count < order - 1 )
         {
             result = success;
@@ -493,7 +493,7 @@ size_t B_Tree<data_type, key_type, getKey, order, L>::findPos( Leaf* l, const da
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_type& cur_newKey, Node* cur_newBranch, size_t pos, key_type& newKey, Node*& newBranch)
 {
-    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //写入新磁盘
     newBranch = new Node( n->tag ); //分出的新结点的tag肯定和n相同
     size_t mid = order / 2;
     if( pos >= mid ) //使mid向后数的关键字个数总小于等于左半边的
@@ -517,12 +517,13 @@ void B_Tree<data_type, key_type, getKey, order, L>::split( Node* n, const key_ty
     newKey = n->key[n->count - 1];
     newBranch->branch.node[0] = n->branch.node[n->count]; 
     n->count--;   
+    //新旧共计两次对磁盘写入
 }   
 
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 void B_Tree<data_type, key_type, getKey, order, L>::split( Leaf* l, const data_type& data, size_t pos, key_type& newKey, Leaf*& newBranch )
 {
-    increaseAccessTime(); //访问磁盘
+    increaseAccessTime(); //写入新磁盘
     newBranch = new Leaf;
     size_t mid = L / 2;
     if( pos >= mid ) //使mid向后数的关键字个数总小于等于左半边的 
