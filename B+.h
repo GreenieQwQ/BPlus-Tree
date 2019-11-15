@@ -248,7 +248,7 @@ private:
         功能：从树中删除叶子中的数据y
         结果：若删除成功则返回true,删除失败返回false
     */
-    bool erase(Node*& n, const data_type& y);
+    bool erase(Node*& n, const data_type& y, key_type& yplus);
     /* 
         功能：给定叶节点指针current,删除该叶节点内的数据x
         结果：若删除成功则返回true,删除失败返回false
@@ -593,11 +593,26 @@ void B_Tree<data_type, key_type, getKey, order, L>::clear( Node*& n )
     n = nullptr;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //erase:
 //专门用于删除叶节点的数据，但是这里不删除节点；
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 bool B_Tree<data_type, key_type, getKey, order, L>::remove_inleaf(Leaf* current, const data_type& y)
 {
+    increaseAccessTime(); //访问磁盘
     for(int i = 0; i<current -> count; i++)
         if(current -> data[i] == y)
         {
@@ -833,11 +848,13 @@ void B_Tree<data_type, key_type, getKey, order, L>::restore_innode(Node* current
 template<typename data_type, typename key_type, typename getKey, int order, int L>
 bool B_Tree<data_type, key_type, getKey, order, L>::erase( const data_type& y)
 {
-    return erase(root, y);
+    getKey getkey;
+    key_type yplus = getkey(y);
+    return erase(root, y, yplus);
 }
 
 template<typename data_type, typename key_type, typename getKey, int order, int L>
-bool B_Tree<data_type, key_type, getKey, order, L>::erase(Node*& current, const data_type& y)
+bool B_Tree<data_type, key_type, getKey, order, L>::erase(Node*& current, const data_type& y, key_type& yplus)
 {
     getKey getkey;
     key_type x = getkey(y);
@@ -846,14 +863,20 @@ bool B_Tree<data_type, key_type, getKey, order, L>::erase(Node*& current, const 
     {
         int position = findPos(current, x);
         bool to_return = remove_inleaf(current -> branch.leaf[position],y);
+        key_type temp = getkey(current -> branch.leaf[position] -> data[0]);
+        yplus = temp;
+        if(position)
+            current -> key[position-1] = temp;
         if(current -> branch.leaf[position] -> count < L/2)
             restore_inleaf(current, position);
         return to_return;
     }
     int position = findPos(current, x);
-    bool to_return = erase(current -> branch.node[position], y);
+    bool to_return = erase(current -> branch.node[position], y, yplus);
     // if(current == root)
     //     cout<< current -> branch.node[position] -> count;
+    if(position&&x==current->key[position-1])
+        current -> key[position-1] = yplus;
     increaseAccessTime(); //访问磁盘
     increaseAccessTime(); //访问磁盘
     if(current -> branch.node[position] -> count < (order-1)/2)
