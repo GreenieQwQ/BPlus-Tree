@@ -593,20 +593,6 @@ void B_Tree<data_type, key_type, getKey, order, L>::clear( Node*& n )
     n = nullptr;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //erase:
 //专门用于删除叶节点的数据，但是这里不删除节点；
 template<typename data_type, typename key_type, typename getKey, int order, int L>
